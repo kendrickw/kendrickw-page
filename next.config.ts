@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Pull all dependencies into .next build
+  output: 'standalone',
 };
 
 export default nextConfig;
