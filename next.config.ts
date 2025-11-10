@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   output: 'export',
   // Optional: if deploying to a subdirectory like https://username.github.io/your-repo-name
   // basePath: '/your-repo-name',
-  assetPrefix: '/kendrickw',
+  // assetPrefix: '/your-repo-name',
 };
 
 export default nextConfig;
