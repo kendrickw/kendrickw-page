@@ -1,0 +1,43 @@
+name: Feature branch
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - main
+      - develop
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Enable corepack to support yarn@4
+        run: corepack enable
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      # Main logic
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Code checking
+        run: |
+          yarn lint
+          yarn ts-check
+
+      # - name: Jest unit tests
+      #   # add following to `yarn test`:
+      #   #  --forceExit to bypass --detectOpenHandle error
+      #   run: |
+      #     yarn jest --ci --runInBand --env=node

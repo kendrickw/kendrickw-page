@@ -1,14 +1,23 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import { twMerge } from 'tailwind-merge';
+import type { Metadata, Viewport } from 'next';
+import { Noto_Sans } from 'next/font/google';
 
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const notoSans = Noto_Sans({
+  subsets: ['latin'],
+  variable: '--font-default',
+});
 
 export const metadata: Metadata = {
-  title: "Kendrick Wong's Homepage",
+  title: "Kendrick's Adventure",
   description: "Kendrick Wong's Homepage",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -17,12 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={twMerge(inter.className, 'bg-background text-foreground')}
-      >
-        {children}
-      </body>
+    <html lang="en" className={notoSans.variable}>
+      <body>{children}</body>
     </html>
   );
 }

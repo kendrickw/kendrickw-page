@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint . --ext .ts,.tsx,.js --no-error-on-unmatched-pattern --max-warnings=0",
+    "lint-and-fix": "yarn lint --fix",
+    "ts-check": "tsc --noEmit"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.17",
@@ -15,7 +17,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "usehooks-ts": "^3.1.1"
   },
   "devDependencies": {
     "@types/node": "^20",
