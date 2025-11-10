@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && yarn postbuild",
-    "postbuild": "shx --verbose cp -r public .next/standalone/public && shx --verbose cp -r .next/static .next/standalone/.next/static",
-    "start": "node .next/standalone/server.js",
+    "build": "next build",
+    "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
@@ -30,7 +29,6 @@
     "prettier-plugin-jsdoc": "^1.5.0",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.1",
-    "shx": "^0.4.0",
     "typescript": "^5"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
