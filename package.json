@@ -11,6 +11,7 @@
     "ts-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "@tailwindcss/postcss": "^4.1.17",
     "next": "16.0.1",
     "postcss": "^8.5.6",

@@ -1,7 +1,10 @@
 'use client';
 import { useIsMobile } from '@/hooks/is-mobile';
+import { Icon } from '@iconify/react';
 import React from 'react';
+import { twJoin } from 'tailwind-merge';
 import { useEventListener, useWindowSize } from 'usehooks-ts';
+import { HoverBox } from './hover-box';
 
 interface Platform {
   x: number;
@@ -13,11 +16,10 @@ interface Platform {
 interface InfoBox {
   x: number;
   y: number;
-  width: number;
-  height: number;
-  title: string;
-  content: string[];
+  label: string;
   color: string;
+  title: React.ReactNode;
+  content: React.ReactNode;
 }
 
 /** User control events */
@@ -31,6 +33,7 @@ export function GamePlay() {
   const windowSize = useWindowSize();
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [gameStarted, setGameStarted] = React.useState(false);
+  const [hoverBox, setHoverBox] = React.useState<InfoBox | null>(null);
   const isMobile = useIsMobile();
   const controlRef = React.useRef<ControlEvent>({
     left: false,
@@ -105,7 +108,7 @@ export function GamePlay() {
 
     /** Grab font family defined in `layout.tsx` */
     const style = getComputedStyle(document.documentElement);
-    const fontFamily = style.getPropertyValue('--font-default');
+    const fontFamily = style.getPropertyValue('--default-font-family');
 
     resizeCanvas();
 
@@ -152,42 +155,83 @@ export function GamePlay() {
       {
         x: 400,
         y: groundY - 200,
-        width: 80,
-        height: 80,
-        title: "👨‍🚀 I'm Kendrick!",
-        content: [
-          '✨ Full Stack Developer by day.',
-          '🧙‍♂️ Stack Whisperer by night.',
-        ],
         color: '#4CAF50',
+        label: '🙋🏻‍♂️',
+        title: "🙋🏻‍♂️ I'm Kendrick!",
+        content: (
+          <ul>
+            <li>✨ Full Stack Developer by day.</li>
+            <li>🧙‍♂️ Stack Whisperer by night.</li>
+          </ul>
+        ),
       },
       {
         x: 900,
         y: groundY - 180,
-        width: 80,
-        height: 80,
-        title: '🧰 My Dev Toolbox',
-        content: [
-          'React & Next.js',
-          'TailwindCSS',
-          'Node.js',
-          'Prisma',
-          '☁︎ Google, Azure, AWS',
-        ],
         color: '#2156A3',
+        label: '🧰',
+        title: '🧰 My Dev Toolbox',
+        content: (
+          <ul>
+            <li className="flex items-center gap-2">
+              <Icon icon="devicon:react" />
+              React & Next.js
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon icon="devicon:tailwindcss" />
+              TailwindCSS
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon icon="devicon:nodejs" />
+              Node.js
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon icon="material-icon-theme:prisma" />
+              Prisma
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon icon="devicon:azure" />
+              Azure
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon icon="fa6-brands:aws" />
+              AWS
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon icon="devicon:googlecloud" />
+              Google
+            </li>
+          </ul>
+        ),
       },
       {
         x: 1400,
         y: groundY - 200,
-        width: 80,
-        height: 80,
-        title: '📫 Contact',
-        content: ['GitHub', 'LinkedIn', 'Email'],
         color: '#FF9800',
+        label: '📫',
+        title: '📫 Contact',
+        content: (
+          <ul>
+            <li className="flex items-center gap-2">
+              <Icon color="white" icon="mdi:github" />
+              <a href="https://github.com/kendrickw">kendrickw</a>
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon icon="devicon:linkedin" />
+              <a href="https://www.linkedin.com/in/kendrickwong0">
+                kendrickwong0
+              </a>
+            </li>
+            <li className="flex items-center gap-2">
+              <Icon color="orange" icon="memory:email" />
+              <a href="mailto:kendrickw@luumitech.com">
+                kendrickw@luumitech.com
+              </a>
+            </li>
+          </ul>
+        ),
       },
     ];
-
-    let hoveredBox: InfoBox | null = null;
 
     // Draw flag pole
     const drawFlagPole = (x: number, y: number) => {
@@ -222,6 +266,36 @@ export function GamePlay() {
       ctx.fillRect(x + 35, y - 165, 10, 10);
 
       ctx.restore();
+    };
+
+    // Draw flag pole
+    const drawInfoBox = (x: number, box: InfoBox, isNear: boolean) => {
+      const boxWidth = 80;
+      const boxHeight = 80;
+
+      ctx.save();
+      // Add Glow effect
+      ctx.shadowBlur = isNear ? 30 : 10;
+      ctx.shadowColor = box.color;
+      ctx.fillStyle = box.color;
+      ctx.fillRect(x, box.y, boxWidth, boxHeight);
+      ctx.restore();
+
+      // Label on Info box
+      ctx.fillStyle = '#fff';
+      ctx.font = `24px ${fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.fillText(box.label, x + boxWidth / 2, box.y + boxHeight / 2 + 8);
+    };
+
+    // Draw Platform
+    const drawPlatform = (x: number, platform: Platform) => {
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(x, platform.y, platform.width, platform.height);
+
+      // Grass on top
+      ctx.fillStyle = '#228B22';
+      ctx.fillRect(x, platform.y - 5, platform.width, 5);
     };
 
     // Draw player
@@ -329,11 +403,15 @@ export function GamePlay() {
       // Draw clouds
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       for (let i = 0; i < 5; i++) {
-        const cloudX = (i * 400 - camera.x * 0.3) % (canvas.width + 200);
+        const cloudSpeed = i % 2 ? 0.3 : 0.5;
+        const cloudX =
+          (i * canvas.width * 0.4 + camera.x * cloudSpeed) % canvas.width;
+        const cloudY = 100 + i * 50;
+
         ctx.beginPath();
-        ctx.arc(cloudX, 100 + i * 50, 30, 0, Math.PI * 2);
-        ctx.arc(cloudX + 25, 100 + i * 50, 40, 0, Math.PI * 2);
-        ctx.arc(cloudX + 50, 100 + i * 50, 30, 0, Math.PI * 2);
+        ctx.arc(cloudX, cloudY, 30, 0, Math.PI * 2);
+        ctx.arc(cloudX + 25, cloudY, 40, 0, Math.PI * 2);
+        ctx.arc(cloudX + 50, cloudY, 30, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -375,25 +453,23 @@ export function GamePlay() {
       camera.x = player.x - canvas.width / 3;
       if (camera.x < 0) camera.x = 0;
 
-      // Check collision with looped platforms
+      // Check collision with platforms
       const currentLoop = Math.floor(camera.x / loopWidth);
       player.isJumping = true;
-      for (let loop = currentLoop - 1; loop <= currentLoop + 1; loop++) {
-        basePlatforms.forEach((platform) => {
-          const loopedX = platform.x + loop * loopWidth;
-          if (
-            player.x + player.width > loopedX &&
-            player.x < loopedX + platform.width &&
-            player.y + player.height > platform.y &&
-            player.y + player.height < platform.y + platform.height &&
-            player.velocityY > 0
-          ) {
-            player.y = platform.y - player.height;
-            player.velocityY = 0;
-            player.isJumping = false;
-          }
-        });
-      }
+      basePlatforms.forEach((platform) => {
+        const loopedX = platform.x + currentLoop * loopWidth;
+        if (
+          player.x + player.width > loopedX &&
+          player.x < loopedX + platform.width &&
+          player.y + player.height > platform.y &&
+          player.y + player.height < platform.y + platform.height &&
+          player.velocityY > 0
+        ) {
+          player.y = platform.y - player.height;
+          player.velocityY = 0;
+          player.isJumping = false;
+        }
+      });
 
       // Fallback ground check - prevent falling through floor
       if (player.y + player.height > groundY) {
@@ -402,77 +478,60 @@ export function GamePlay() {
         player.isJumping = false;
       }
 
-      // Draw ground (infinite)
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(0, groundY, canvas.width, 20);
-      ctx.fillStyle = '#228B22';
-      ctx.fillRect(0, groundY - 5, canvas.width, 5);
+      // Draw ground
+      drawPlatform(0, {
+        x: 0,
+        y: groundY,
+        width: canvas.width,
+        height: 20,
+      });
 
-      // Draw platforms (with looping)
-      ctx.fillStyle = '#8B4513';
-      for (let loop = currentLoop - 1; loop <= currentLoop + 1; loop++) {
+      // Draw platforms (and ones in next stage)
+      [currentLoop, currentLoop + 1].forEach((loop) => {
         basePlatforms.forEach((platform) => {
           const loopedX = platform.x + loop * loopWidth;
           const screenX = loopedX - camera.x;
 
-          // Only draw if visible on screen
-          if (screenX + platform.width > 0 && screenX < canvas.width) {
-            ctx.fillRect(screenX, platform.y, platform.width, platform.height);
-
-            // Grass on top
-            ctx.fillStyle = '#228B22';
-            ctx.fillRect(screenX, platform.y - 5, platform.width, 5);
-            ctx.fillStyle = '#8B4513';
-          }
+          drawPlatform(screenX, platform);
         });
-      }
+      });
 
-      // Check and draw info boxes (with looping)
-      hoveredBox = null;
-      for (let loop = currentLoop - 1; loop <= currentLoop + 1; loop++) {
+      // Calculate infoBox position given loop index and check if player is near it
+      const calcBoxPos = (box: InfoBox, loop: number) => {
+        const loopedX = box.x + loop * loopWidth;
+        const isNear =
+          Math.abs(player.x - loopedX) < 100 &&
+          Math.abs(player.y - box.y) < 100;
+        return { loopedX, isNear };
+      };
+
+      // Show Hoverbox when player is near InfoBox
+      const nearBox = baseInfoBoxes.find((box) => {
+        const { isNear } = calcBoxPos(box, currentLoop);
+        return isNear;
+      });
+      setHoverBox(nearBox ?? null);
+
+      // Draw InfoBox (and ones in next stage)
+      [currentLoop, currentLoop + 1].forEach((loop) => {
         baseInfoBoxes.forEach((box) => {
-          const loopedX = box.x + loop * loopWidth;
+          const { loopedX, isNear } = calcBoxPos(box, loop);
           const screenX = loopedX - camera.x;
-          const isNear =
-            Math.abs(player.x - loopedX) < 100 &&
-            Math.abs(player.y - box.y) < 100;
 
-          if (isNear) hoveredBox = box;
-
-          // Only draw if visible on screen
-          if (screenX + box.width > 0 && screenX < canvas.width) {
-            // Draw box with glow effect
-            ctx.save();
-            ctx.shadowBlur = isNear ? 20 : 10;
-            ctx.shadowColor = box.color;
-            ctx.fillStyle = box.color;
-            ctx.fillRect(screenX, box.y, box.width, box.height);
-            ctx.restore();
-
-            // Draw icon/title
-            ctx.fillStyle = '#fff';
-            ctx.font = `24px ${fontFamily}`;
-            ctx.textAlign = 'center';
-            ctx.fillText(
-              box.title.split(' ')[0],
-              screenX + box.width / 2,
-              box.y + box.height / 2 + 8
-            );
-          }
+          drawInfoBox(screenX, box, isNear);
         });
-      }
+      });
 
-      // Draw flag poles at loop points (skip the first one at x=0)
-      for (let loop = currentLoop; loop <= currentLoop + 1; loop++) {
+      // Draw flag poles (and one in next stage)
+      [currentLoop, currentLoop + 1].forEach((loop) => {
         if (loop > 0) {
           // Only draw flags after the first loop
           const flagX = loop * loopWidth;
-          const screenFlagX = flagX - camera.x;
-          if (screenFlagX > -100 && screenFlagX < canvas.width + 100) {
-            drawFlagPole(screenFlagX, groundY);
-          }
+          const screenX = flagX - camera.x;
+
+          drawFlagPole(screenX, groundY);
         }
-      }
+      });
 
       // Draw player
       drawPlayer(player.x - camera.x, player.y, player.direction, player.frame);
@@ -483,7 +542,7 @@ export function GamePlay() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#fff';
         const titleSize = canvas.width < 768 ? 32 : 48;
-        const textSize = canvas.width < 768 ? 16 : 24;
+        const textSize = canvas.width < 768 ? 20 : 24;
 
         ctx.font = `bold ${titleSize}px ${fontFamily}`;
         ctx.textAlign = 'center';
@@ -521,33 +580,6 @@ export function GamePlay() {
             canvas.height / 2 + 60
           );
         }
-      }
-
-      // Draw info panel
-      if (hoveredBox && gameStarted) {
-        const box = hoveredBox as InfoBox;
-        const itemCount = box.content.length;
-        const panelWidth = 300;
-        const panelHeight = 80 + itemCount * 30;
-        const panelX = canvas.width - panelWidth - 20;
-        const panelY = 20;
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
-
-        ctx.strokeStyle = box.color;
-        ctx.lineWidth = 3;
-        ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
-
-        ctx.fillStyle = '#fff';
-        ctx.font = `bold 24px ${fontFamily}`;
-        ctx.textAlign = 'left';
-        ctx.fillText(box.title, panelX + 20, panelY + 40);
-
-        ctx.font = `18px ${fontFamily}`;
-        box.content.forEach((line: string, i: number) => {
-          ctx.fillText(line, panelX + 20, panelY + 80 + i * 30);
-        });
       }
 
       // Draw controls hint (desktop only)
@@ -591,7 +623,7 @@ export function GamePlay() {
         ctx.fillStyle = '#fff';
         const loopNumber = Math.floor((player.x + 150) / loopWidth) + 1;
         ctx.fillText(
-          `Procced to stage ${loopNumber}...`,
+          `Proceed to stage ${loopNumber}...`,
           canvas.width / 2,
           canvas.height / 2 + 20
         );
@@ -615,56 +647,76 @@ export function GamePlay() {
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <canvas
-        ref={canvasRef}
-        className="block"
-        style={{ imageRendering: 'pixelated' }}
-        onTouchStart={handleTouchStart}
-      />
+    <div className="relative h-dvh w-dvw overflow-hidden">
+      <canvas ref={canvasRef} onTouchStart={handleTouchStart} />
+
+      {hoverBox && (
+        <div className="absolute right-4 top-4">
+          <HoverBox borderColor={hoverBox.color} title={hoverBox.title}>
+            {hoverBox.content}
+          </HoverBox>
+        </div>
+      )}
 
       {/* Mobile Controls */}
       {showTouchControl && (
-        <div className="pointer-events-none absolute inset-0 flex items-end justify-between p-4 pb-8">
+        <div
+          className={twJoin(
+            'absolute inset-0 p-8',
+            'select-none',
+            'flex items-end justify-between'
+          )}
+        >
           {/* Left Side - Movement Controls */}
-          <div className="pointer-events-auto flex gap-3">
+          <div className="flex gap-3">
             {/* Left Button */}
             <button
+              className={twJoin(
+                'h-16 w-16',
+                'flex items-center justify-center',
+                'rounded-full text-3xl',
+                'bg-white/20 backdrop-blur-sm active:bg-white/40'
+              )}
               onTouchStart={() => updateControl('left', true)}
               onTouchEnd={() => updateControl('left', false)}
               onMouseDown={() => updateControl('left', true)}
               onMouseUp={() => updateControl('left', false)}
               onMouseLeave={() => updateControl('left', false)}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl backdrop-blur-sm active:bg-white/40"
-              style={{ touchAction: 'none' }}
             >
-              ⇦
+              <Icon icon="pixelarticons:arrow-left" />
             </button>
-
             {/* Right Button */}
             <button
+              className={twJoin(
+                'h-16 w-16',
+                'flex items-center justify-center',
+                'rounded-full text-3xl',
+                'bg-white/20 backdrop-blur-sm active:bg-white/40'
+              )}
               onTouchStart={() => updateControl('right', true)}
               onTouchEnd={() => updateControl('right', false)}
               onMouseDown={() => updateControl('right', true)}
               onMouseUp={() => updateControl('right', false)}
               onMouseLeave={() => updateControl('right', false)}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl backdrop-blur-sm active:bg-white/40"
-              style={{ touchAction: 'none' }}
             >
-              ⇨
+              <Icon icon="pixelarticons:arrow-right" />
             </button>
           </div>
 
           {/* Right Side - Jump Button */}
-          <div className="pointer-events-auto">
+          <div>
             <button
+              className={twJoin(
+                'h-20 w-20',
+                'flex items-center justify-center',
+                'rounded-full text-xl font-bold',
+                'bg-white/20 backdrop-blur-sm active:bg-white/40'
+              )}
               onTouchStart={() => updateControl('jump', true)}
               onTouchEnd={() => updateControl('jump', false)}
               onMouseDown={() => updateControl('jump', true)}
               onMouseUp={() => updateControl('jump', false)}
               onMouseLeave={() => updateControl('jump', false)}
-              className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-xl font-bold backdrop-blur-sm active:bg-white/40"
-              style={{ touchAction: 'none' }}
             >
               JUMP
             </button>

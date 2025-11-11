@@ -14,3 +14,18 @@ body {
   color: rgb(var(--foreground-rgb));
   background-color: rgb(var(--background-rgb));
 }
+
+/* Use if using a non-pixelated font */
+/* canvas {
+  image-rendering: pixelated;
+} */
+
+button {
+  touch-action: 'none';
+}
+
+/* Anchor in infobox */
+a {
+  cursor: pointer;
+  z-index: 10;
+}
