@@ -453,22 +453,24 @@ export function GamePlay() {
       camera.x = player.x - canvas.width / 3;
       if (camera.x < 0) camera.x = 0;
 
-      // Check collision with platforms
+      // Collision detection with platforms
       const currentLoop = Math.floor(camera.x / loopWidth);
       player.isJumping = true;
-      basePlatforms.forEach((platform) => {
-        const loopedX = platform.x + currentLoop * loopWidth;
-        if (
-          player.x + player.width > loopedX &&
-          player.x < loopedX + platform.width &&
-          player.y + player.height > platform.y &&
-          player.y + player.height < platform.y + platform.height &&
-          player.velocityY > 0
-        ) {
-          player.y = platform.y - player.height;
-          player.velocityY = 0;
-          player.isJumping = false;
-        }
+      [currentLoop, currentLoop + 1].forEach((loop) => {
+        basePlatforms.forEach((platform) => {
+          const loopedX = platform.x + loop * loopWidth;
+          if (
+            player.x + player.width > loopedX &&
+            player.x < loopedX + platform.width &&
+            player.y + player.height > platform.y &&
+            player.y + player.height < platform.y + platform.height &&
+            player.velocityY > 0
+          ) {
+            player.y = platform.y - player.height;
+            player.velocityY = 0;
+            player.isJumping = false;
+          }
+        });
       });
 
       // Fallback ground check - prevent falling through floor
