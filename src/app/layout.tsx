@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans } from 'next/font/google';
+import { Pixelify_Sans } from 'next/font/google';
+import { twJoin } from 'tailwind-merge';
 
 import './globals.css';
 
-const notoSans = Noto_Sans({
+const font = Pixelify_Sans({
   subsets: ['latin'],
-  variable: '--font-default',
+  variable: '--default-font-family',
 });
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={notoSans.variable}>
+    <html lang="en" className={twJoin(font.variable)}>
       <body>{children}</body>
     </html>
   );
