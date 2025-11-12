@@ -28,4 +28,9 @@ button {
 a {
   cursor: pointer;
   z-index: 10;
+  color: var(--color-white);
+
+  &:hover {
+    color: var(--color-amber-500);
+  }
 }
