@@ -9,7 +9,7 @@ interface Props {
   onPress?: (key: keyof ControlEvent, state: boolean) => void;
 }
 
-export const TouchControl: React.FC<Props> = ({
+const TouchControlImpl: React.FC<Props> = ({
   className,
   showControl,
   onPress,
@@ -17,6 +17,7 @@ export const TouchControl: React.FC<Props> = ({
   if (!showControl) {
     return null;
   }
+
   return (
     <div
       className={twMerge(
@@ -83,3 +84,7 @@ export const TouchControl: React.FC<Props> = ({
     </div>
   );
 };
+TouchControlImpl.displayName = 'TouchControl';
+
+// Make sure this component won't re-render unless props are modified
+export const TouchControl = React.memo(TouchControlImpl);
