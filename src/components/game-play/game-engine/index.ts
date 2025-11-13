@@ -1,11 +1,11 @@
-import { Cloud } from './cloud';
-import { ControlHint } from './control-hint';
-import { FlagPole } from './flag-pole';
-import { InfoBox } from './info-box';
-import { IntroScreen } from './intro-screen';
-import { Platform } from './platform';
-import { Player } from './player';
-import { StageComplete } from './stage-complete';
+export * from './cloud';
+export * from './control-hint';
+export * from './flag-pole';
+export * from './info-box';
+export * from './intro-screen';
+export * from './platform';
+export * from './player';
+export * from './stage-complete';
 
 interface CameraState {
   x: number;
@@ -33,16 +33,6 @@ export class GameEngine {
   // height from bottom edge where the physical ground is
   groundY: number;
 
-  /** Elements within the canvas that can be rendered */
-  introScreen: IntroScreen;
-  player: Player;
-  cloud: Cloud;
-  controlHint: ControlHint;
-  flagPole: FlagPole;
-  platforms: Platform[];
-  infoBoxes: InfoBox[];
-  stageComplete: StageComplete;
-
   constructor(public canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -58,15 +48,6 @@ export class GameEngine {
     /** Grab font family defined in `layout.tsx` */
     const style = getComputedStyle(document.documentElement);
     this.fontFamily = style.getPropertyValue('--default-font-family');
-
-    this.introScreen = new IntroScreen(this);
-    this.player = new Player(this);
-    this.cloud = new Cloud(this);
-    this.controlHint = new ControlHint(this);
-    this.flagPole = new FlagPole(this);
-    this.platforms = Platform.getPlatforms(this);
-    this.infoBoxes = InfoBox.getInfoBoxes(this);
-    this.stageComplete = new StageComplete(this);
   }
 
   /**

@@ -18,6 +18,7 @@ export const HoverBox: React.FC<React.PropsWithChildren<Props>> = ({
       className={twMerge(
         'bg-gray-700/90 text-white/80',
         'border-4 p-4',
+        'whitespace-nowrap',
         className
       )}
     >

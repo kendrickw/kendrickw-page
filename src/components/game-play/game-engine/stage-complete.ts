@@ -8,8 +8,8 @@ export class StageComplete {
    *
    * - Appears in middle of screen when player reaches flag pole
    */
-  draw() {
-    const { ctx, canvas, fontFamily, player, loopWidth } = this.gameEngine;
+  draw(stageNumber: number) {
+    const { ctx, canvas, fontFamily } = this.gameEngine;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.fillRect(canvas.width / 2 - 150, canvas.height / 2 - 50, 300, 100);
@@ -22,10 +22,9 @@ export class StageComplete {
     ctx.fillText('Stage Complete!', canvas.width / 2, canvas.height / 2 - 10);
     ctx.font = `18px ${fontFamily}`;
 
-    const loopNumber = Math.floor((player.x + 150) / loopWidth) + 1;
     ctx.fillStyle = '#fff';
     ctx.fillText(
-      `Proceed to stage ${loopNumber}...`,
+      `Proceed to stage ${stageNumber}...`,
       canvas.width / 2,
       canvas.height / 2 + 20
     );
