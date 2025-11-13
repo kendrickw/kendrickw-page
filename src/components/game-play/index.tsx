@@ -6,9 +6,23 @@ import { twMerge } from 'tailwind-merge';
 import { useEventListener, useWindowSize } from 'usehooks-ts';
 import { HoverBox } from '../hover-box';
 import { TouchControl } from '../touch-control';
-import { GameEngine } from './game-engine';
-import { InfoBox } from './game-engine/info-box';
-import { Platform } from './game-engine/platform';
+import {
+  Cloud,
+  ControlHint,
+  FlagPole,
+  GameEngine,
+  InfoBox,
+  IntroScreen,
+  Platform,
+  Player,
+  StageComplete,
+} from './game-engine';
+
+interface HoverBox {
+  box: InfoBox;
+  x: number;
+  y: number;
+}
 
 interface Props {
   className?: string;
@@ -19,7 +33,7 @@ export const GamePlay: React.FC<Props> = ({ className }) => {
   const isMobile = useIsMobile();
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [gameStarted, setGameStarted] = React.useState(false);
-  const [hoverBox, setHoverBox] = React.useState<InfoBox | null>(null);
+  const [hoverBox, setHoverBox] = React.useState<HoverBox | null>(null);
   const [controlRef, updateControl] = useRegisterControl({
     onKeyDown: () => {
       if (!gameStarted) {
@@ -65,15 +79,16 @@ export const GamePlay: React.FC<Props> = ({ className }) => {
     resizeCanvas();
 
     let animationId: number;
-    const {
-      groundY,
-      player,
-      camera,
-      gravity,
-      loopWidth,
-      platforms,
-      infoBoxes,
-    } = gameEngine;
+    const { groundY, camera, gravity, loopWidth } = gameEngine;
+    const introScreen = new IntroScreen(gameEngine);
+    const player = new Player(gameEngine);
+    const cloud = new Cloud(gameEngine);
+    const controlHint = new ControlHint(gameEngine);
+    const flagPole = new FlagPole(gameEngine);
+    const platforms = Platform.getPlatforms(gameEngine);
+    const infoBoxes = InfoBox.getInfoBoxes(gameEngine);
+    const stageComplete = new StageComplete(gameEngine);
+    const ground = new Platform(gameEngine, 0, groundY, canvas.width, 20);
 
     // Game loop
     const gameLoop = () => {
@@ -151,11 +166,10 @@ export const GamePlay: React.FC<Props> = ({ className }) => {
           (i * canvas.width * 0.4 + camera.x * cloudSpeed) % canvas.width;
         const cloudY = 100 + i * 50;
 
-        gameEngine.cloud.draw(cloudX, cloudY);
+        cloud.draw(cloudX, cloudY);
       }
 
       // Draw ground
-      const ground = new Platform(gameEngine, 0, groundY, canvas.width, 20);
       ground.draw();
 
       // Draw platforms (and ones in next stage)
@@ -165,35 +179,34 @@ export const GamePlay: React.FC<Props> = ({ className }) => {
         });
       });
 
-      // Calculate InfoBox position given loop index and check if player is near it
-      const isNearBox = (box: InfoBox, loop: number) => {
-        const loopedX = box.x + loop * loopWidth;
-        const isNear =
-          Math.abs(player.x - loopedX) < 100 &&
-          Math.abs(player.y - box.y) < 100;
-        return isNear;
-      };
-
-      // Show Hoverbox when player is near InfoBox
-      const nearBox = infoBoxes.find((box) => {
-        const isNear = isNearBox(box, currentLoop);
-        return isNear;
-      });
-      setHoverBox(nearBox ?? null);
-
       // Draw InfoBox (and ones in next stage)
+      let nearBox: HoverBox | null = null;
       [currentLoop, currentLoop + 1].forEach((loop) => {
         infoBoxes.forEach((box) => {
-          const isNear = isNearBox(box, loop);
+          const loopedX = box.x + loop * loopWidth;
+          // Check if player is close to InfoBox
+          const isNear =
+            Math.abs(player.x - loopedX) < 100 &&
+            Math.abs(player.y - box.y) < 100;
+
           box.draw(loop * loopWidth - camera.x, isNear);
+          if (isNear) {
+            nearBox = {
+              box,
+              x: loopedX - camera.x,
+              y: box.y - 10,
+            };
+          }
         });
       });
+
+      setHoverBox(nearBox);
 
       // Draw flag poles (and one in next stage)
       [currentLoop, currentLoop + 1].forEach((loop) => {
         if (loop > 0) {
           // Only draw flags after the first loop
-          gameEngine.flagPole.draw(loop * loopWidth - camera.x);
+          flagPole.draw(loop * loopWidth - camera.x);
         }
       });
 
@@ -202,17 +215,17 @@ export const GamePlay: React.FC<Props> = ({ className }) => {
 
       // Draw UI
       if (!gameStarted) {
-        gameEngine.introScreen.draw(showTouchControl);
+        introScreen.draw(showTouchControl);
       } else {
         // Draw controls hint (desktop only)
         if (!showTouchControl) {
-          gameEngine.controlHint.draw();
+          controlHint.draw();
         }
 
         // Show message when near flag pole (but not at the start)
         const nearestFlagX = Math.round(player.x / loopWidth) * loopWidth;
         if (nearestFlagX > 0 && Math.abs(player.x - nearestFlagX) < 150) {
-          gameEngine.stageComplete.draw();
+          stageComplete.draw(currentLoop + 2);
         }
       }
 
@@ -231,9 +244,12 @@ export const GamePlay: React.FC<Props> = ({ className }) => {
       <canvas ref={canvasRef} onTouchStart={handleTouchStart} />
 
       {hoverBox && (
-        <div className="absolute right-4 top-4">
-          <HoverBox borderColor={hoverBox.color} title={hoverBox.title}>
-            {hoverBox.content}
+        <div
+          className="absolute"
+          style={{ left: hoverBox.x, bottom: windowSize.height - hoverBox.y }}
+        >
+          <HoverBox borderColor={hoverBox.box.color} title={hoverBox.box.title}>
+            {hoverBox.box.content}
           </HoverBox>
         </div>
       )}

@@ -17,7 +17,7 @@ export class InfoBox {
     const { groundY } = gameEngine;
     const configList = [
       {
-        x: 400,
+        x: 340,
         y: groundY - 200,
         color: '#4CAF50',
         label: '🙋🏻‍♂️',

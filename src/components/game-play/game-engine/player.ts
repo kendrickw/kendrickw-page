@@ -37,17 +37,17 @@ export class Player {
 
   /** Draw player */
   draw() {
-    const { ctx, player, camera } = this.gameEngine;
-    const x = player.x - camera.x;
-    const y = player.y;
-    const { direction, frame } = player;
+    const { ctx, camera } = this.gameEngine;
+    const { direction, frame } = this;
+    const x = this.x - camera.x;
+    const y = this.y;
 
     ctx.save();
-    ctx.translate(x + player.width / 2, y);
+    ctx.translate(x + this.width / 2, y);
     if (direction === -1) {
       ctx.scale(-1, 1);
     }
-    ctx.translate(-player.width / 2, 0);
+    ctx.translate(-this.width / 2, 0);
 
     // Currently the paint logic assume player is 48x72
 
